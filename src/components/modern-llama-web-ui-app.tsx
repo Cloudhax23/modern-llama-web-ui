@@ -1,22 +1,12 @@
 import React from 'react';
+import ChatWindow from './chat/Window/Window';
+import Box from '@mui/material/Box';
 
 function ModernLLAMAWebUIApp() {
   return (
-    <div className="modern-llama-web-ui-app">
-      <header className="modern-llama-web-ui-app-header">
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="modern-llama-web-ui-app-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <ChatWindow />
+    </Box>
   );
 }
 
