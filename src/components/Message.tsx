@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Message as MessageType } from '../../../types';
+import { Message as MessageType } from '../types';
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
-import 'highlight.js/styles/github.css'; // Or any other style you prefer
-import CodeBox from '../CodeBox/CodeBox';
+import 'highlight.js/styles/github.css'
+import 'highlight.js/styles/github-dark.css'
+import CodeBox from './CodeBox';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 
 const getMarked = () => {
   return new Marked(
@@ -23,7 +25,9 @@ const getMarked = () => {
 
 const Message: React.FC<{ message: MessageType }> = ({ message }) => {
   const [content, setContent] = useState<React.ReactNode>('');
-
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+  
   useEffect(() => {
     const marked = getMarked();
     const parseMarkdown = async (markdownText: string) => {
@@ -56,7 +60,9 @@ const Message: React.FC<{ message: MessageType }> = ({ message }) => {
       <Typography component="span" sx={{ fontWeight: 'fontWeightBold' }}>
         {message.author}:
       </Typography>
-      <span className="content">{content}</span>
+      <span className={`content ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
+        {content}
+      </span>
     </Box>
   );
 };

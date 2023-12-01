@@ -13,11 +13,16 @@ const InputBar: React.FC<InputBarProps> = ({ sendMessage, awaitingResponse }) =>
   const [message, setMessage] = useState('');
 
   const handleSend = () => {
-    if(!awaitingResponse) {
-      sendMessage(message);
+    if (!awaitingResponse && message.trim()) {
+      sendMessage(message.trim());
       setMessage('');
-    } else {
-      // Fill in
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      handleSend();
     }
   };
 
@@ -33,6 +38,7 @@ const InputBar: React.FC<InputBarProps> = ({ sendMessage, awaitingResponse }) =>
         maxRows={4}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleKeyDown} // Add the onKeyDown handler here
         placeholder="Type a message..."
         InputProps={{
           endAdornment: (
@@ -43,7 +49,13 @@ const InputBar: React.FC<InputBarProps> = ({ sendMessage, awaitingResponse }) =>
             </InputAdornment>
           ),
         }}
-        sx={{ flex: 1 }}
+        sx={{ 
+          flex: 1,         
+          '& fieldset': {
+            paddingLeft: (theme) => theme.spacing(2.5),
+            borderRadius: '20px',
+          },
+        }}
       />
     </Box>
   );

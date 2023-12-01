@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Message as MessageType } from '../../../types';
-import Message from '../Message/Message';
+import { Message as MessageType } from '../types';
+import Message from './Message';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 

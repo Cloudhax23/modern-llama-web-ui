@@ -31,7 +31,7 @@ const CodeBox: React.FC<{ code: string, language: string }> = ({ code, language 
 
   return (
     <Paper elevation={3} sx={{ margin: '10px', borderRadius: '5px' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#f5f5f5', padding: '5px 10px', borderTopLeftRadius: '4px', borderTopRightRadius: '4px', borderBottom: '1px solid #ccc' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', padding: '5px 10px', borderTopLeftRadius: '4px', borderTopRightRadius: '4px', borderBottom: '1px solid #ccc' }}>
         <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
           {language}
         </Typography>
@@ -39,7 +39,7 @@ const CodeBox: React.FC<{ code: string, language: string }> = ({ code, language 
           <ContentCopyIcon fontSize="small" />
         </IconButton>
       </Box>
-      <Box component="pre" sx={{ margin: '0', padding: '10px', overflowX: 'auto', borderBottomLeftRadius: '4px', borderBottomRightRadius: '4px', backgroundColor: '#fff' }}>
+      <Box component="pre" sx={{ margin: '0', padding: '10px', overflowX: 'auto', borderBottomLeftRadius: '4px', borderBottomRightRadius: '4px'}}>
         <code ref={codeRef} dangerouslySetInnerHTML={{ __html: code }} />
       </Box>
       <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>

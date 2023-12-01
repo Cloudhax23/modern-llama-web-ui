@@ -1,36 +1,43 @@
+import socketio
 import asyncio
-import websockets
-import json
 import random
+import json
+import uuid
 
-async def echo(websocket, path):
-    async for message in websocket:
-        print("Received message:", message)
+# create a Socket.IO server
+sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')  
+app = socketio.ASGIApp(sio)
 
-        try:
-            msg_data = json.loads(message)
-            response_content = msg_data['content']
+@sio.event
+async def connect(sid, environ):
+    print("connect ", sid)
 
-            # Sending each character in the response separately
-            for i, char in enumerate(response_content):
-                partial_response = {
-                    "id": msg_data["id"],
-                    "author": "Server",
-                    "content": char,
-                    "timestamp": msg_data["timestamp"],
-                    "isComplete": i == len(response_content) - 1  # Only the last char completes the message
-                }
+@sio.event
+async def disconnect(sid):
+    print('disconnect ', sid)
 
-                # Send partial response
-                await websocket.send(json.dumps(partial_response))
+@sio.event
+async def sendMessage(sid, data):
+    print("Message received:", data)
+    response_content = data['content']
+    uuId = str(uuid.uuid4())
+    # Sending each character in the response separately
+    for i, char in enumerate(response_content):
+        partial_response = {
+            "id": uuId,
+            "chatId": data["chatId"],
+            "author": "Server",
+            "content": char,
+            "timestamp": data["timestamp"],
+            "isComplete": i == len(response_content) - 1
+        }
 
-                # Wait for a random amount of time (milliseconds)
-                await asyncio.sleep(random.uniform(0.01, .2))
+        # Emit partial response
+        await sio.emit('receiveMessage', partial_response, room=sid)
 
-        except json.JSONDecodeError:
-            print("Received non-JSON message")
+        # Wait for a random amount of time (milliseconds)
+        await asyncio.sleep(random.uniform(0.01, 0.2))
 
-start_server = websockets.serve(echo, "localhost", 8765)
-
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app, host='localhost', port=8765)
