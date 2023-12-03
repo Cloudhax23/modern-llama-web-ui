@@ -13,7 +13,11 @@ RUN npm install
 # Copy the rest of your app's source code
 COPY HIVE-ui/ .
 
+# Pass a default API endpoint
+ARG REACT_APP_API_BACKED_URL=http://localhost:8000
+
 # Build your app
+ENV REACT_APP_API_BACKED_URL=$REACT_APP_API_BACKED_URL
 RUN npm run build
 
 # Use nginx to serve the React app

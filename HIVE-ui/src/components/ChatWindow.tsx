@@ -6,7 +6,7 @@ import { Box, Typography } from '@mui/material';
 import HiveIcon from '@mui/icons-material/Hive';
 import { Chat, Message } from '../types';
 import Sidebar from './Sidebar';
-import { API_BACKED_URL } from '../types';
+import { API_BACKEND_URL } from '../types';
 
 const Window: React.FC = () => {
   const [isSending, setIsSending] = useState(false);
@@ -153,9 +153,8 @@ const Window: React.FC = () => {
     }
 
     // Send the data to the server and handle the stream
-    console.log(API_BACKED_URL);
     
-    const response = await fetch('http://${API_BACKED_URL}/completion', {
+    const response = await fetch('http://${API_BACKEND_URL}/completion', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({prompt: formatPrompt(content), n_predict: -1, stream: true, stop: ["\n### Instruction:"]})

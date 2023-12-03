@@ -12,4 +12,4 @@ export interface Chat {
   name: string;
 }
 
-export const API_BACKED_URL = process.env.API_BACKED_URL || 'localhost:8000';
+export const API_BACKEND_URL = process.env.REACT_APP_API_BACKED_URL || 'http://localhost:8000';
