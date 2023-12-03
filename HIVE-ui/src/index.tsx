@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import ModernLLAMAWebUIApp from './components/modern-llama-web-ui-app';
+import HiveUIApp from './components/HiveUIApp';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -8,6 +8,6 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <ModernLLAMAWebUIApp />
+    <HiveUIApp />
   </React.StrictMode>
 );

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import 'highlight.js/styles/github.css';
+import 'highlight.js/styles/github-dark.css';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';

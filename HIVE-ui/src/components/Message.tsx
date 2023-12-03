@@ -4,7 +4,6 @@ import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
-import 'highlight.js/styles/github.css'
 import 'highlight.js/styles/github-dark.css'
 import CodeBox from './CodeBox';
 import Box from '@mui/material/Box';
@@ -38,18 +37,25 @@ const Message: React.FC<{ message: MessageType }> = ({ message }) => {
       } else {
         sanitizedMarkup = DOMPurify.sanitize(await rawMarkup);
       }
-
-      // Check for code block pattern
-      const codeBlockRegex = /<pre><code class="hljs language-(.*?)">([\s\S]*?)<\/code><\/pre>/;
-      const match = codeBlockRegex.exec(sanitizedMarkup);
-      if (match) {
-        const language = match[1];
-        const code = match[2];
-        // Use your CodeBox component for rendering code
-        setContent(<CodeBox code={code} language={language} />);
-      } else {
-        setContent(<span dangerouslySetInnerHTML={{ __html: sanitizedMarkup }} />);
-      }
+    
+      // Split the content into segments of code and text
+      const segments = sanitizedMarkup.split(/(<pre><code class="hljs language-.*?">[\s\S]*?<\/code><\/pre>)/);
+    
+      // Render each segment
+      const contentElements = segments.map((segment, index) => {
+        const codeBlockRegex = /<pre><code class="hljs language-(.*?)">([\s\S]*?)<\/code><\/pre>/;
+        const match = codeBlockRegex.exec(segment);
+    
+        if (match) {
+          const [ , language, code ] = match;
+          return <CodeBox key={`codeblock-${index}`} code={code} language={language} />;
+        } else {
+          return <span key={`textblock-${index}`} dangerouslySetInnerHTML={{ __html: segment }} />;
+        }
+      });
+    
+      // Set the combined content
+      setContent(<div>{contentElements}</div>);
     };
 
     parseMarkdown(message.content);

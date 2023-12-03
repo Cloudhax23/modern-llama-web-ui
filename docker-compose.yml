@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  HIVE-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    ports:
+      - "80:80"
+    environment:
+      - API_BACKED_URL=http://vllm-backend:8000
+
+  vllm-backend:
+    container_name: HIVE-backend
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    ipc: "host"
