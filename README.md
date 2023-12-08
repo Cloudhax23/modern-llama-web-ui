@@ -1,4 +1,4 @@
-# HIVE - Human Information Vivication Exploration
+# HIVE - Human Information Vivification Exploration
 
 ## Introduction
 Welcome to HIVE, an innovative project to enhance human information exploration and interaction. HIVE stands for Human Information Vivification Exploration, reflecting our commitment to developing intuitive and powerful data management and analysis tools.
