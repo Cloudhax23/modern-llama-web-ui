@@ -4,7 +4,7 @@ import InputBar from './InputBar';
 import { v4 as uuidv4 } from 'uuid';
 import { Box, Typography } from '@mui/material';
 import HiveIcon from '@mui/icons-material/Hive';
-import { Chat, Message } from '../types';
+import { API_ANTI_PROMPT, API_ASSISTANT_PROMPT, API_MAX_GEN_TOKENS, API_MAX_TOKENS, API_MODEL_SELECTION, API_PROMPT, Chat, Message } from '../types';
 import Sidebar from './Sidebar';
 import { API_BACKEND_URL } from '../types';
 
@@ -58,70 +58,128 @@ const Window: React.FC = () => {
     }
   }, []);
 
+  const updateUserMessageTokens = (chatId: string, promptTokens: number) => {
+    setChats(chats => {
+      // Find the chat with the given chatId
+      const chatIndex = chats.findIndex(chat => chat.id === chatId);
+      if (chatIndex === -1) return chats;
+  
+      // Clone the chats array to avoid direct state mutation
+      const newChats = [...chats];
+  
+      const messages = newChats[chatIndex].messages;
+      if (messages && messages.length >= 2) {
+        const userMessageIndex = messages.length - 2; // Index of second to last message
+        const newUserMessage = { ...messages[userMessageIndex], tokens: promptTokens };
+  
+        // Update the user message
+        newChats[chatIndex].messages[userMessageIndex] = newUserMessage;
+      }
+  
+      return newChats;
+    });
+  };
+  
   const handleStream = async (reader: ReadableStreamDefaultReader, chatId: string) => {
     let receivedText = '';
-
+  
     let responseMessage = {
-        id: uuidv4(),
-        content: '',
-        author: 'Assistant',
-        timestamp: Date.now(),
-        completed: false
+      id: uuidv4(),
+      content: '',
+      author: 'Assistant',
+      timestamp: Date.now(),
+      completed: false,
+      tokens: 0
     };
-
+    
     // eslint-disable-next-line no-constant-condition
     while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-            responseMessage = { ...responseMessage, content: receivedText, completed: true };
-            handleReceive(responseMessage, chatId, true);
-            break;
+      const { done, value } = await reader.read();
+      if (done) {
+        responseMessage = { ...responseMessage, content: receivedText, completed: true };
+        handleReceive(responseMessage, chatId, true);
+        break;
+      }
+  
+      const chunkStr = new TextDecoder().decode(value).trim();
+  
+      const messages = chunkStr.split('\n').filter(msg => msg.trim());
+  
+      for (const msg of messages) {
+        if (msg === 'data: [DONE]') {
+          responseMessage = { ...responseMessage, content: receivedText, completed: true };
+          handleReceive(responseMessage, chatId, true);
+          return; 
         }
-
-        let chunkStr = new TextDecoder().decode(value).trim();
-
-        if (chunkStr.startsWith('data: ')) {
-            chunkStr = chunkStr.substring(6).trim();
-            
-            try {
-                const chunkObj = JSON.parse(chunkStr);
-                if (chunkObj.content) {
-                    receivedText += chunkObj.content;
-                    responseMessage = { ...responseMessage, content: receivedText };
-                }
-
-                if (chunkObj.stop) {
-                    responseMessage = { ...responseMessage, completed: true };
-                    break;
-                }
-            } catch (error) {
-                console.error('Error parsing JSON:', chunkStr, error);
+  
+        if (msg.startsWith('data: ')) {
+          try {
+            const dataStr = msg.substring(6).trim();
+            const dataObj = JSON.parse(dataStr);
+  
+            if (dataObj.choices && dataObj.choices.length > 0) {
+              receivedText += dataObj.choices[0].text;
+              responseMessage = { ...responseMessage, content: receivedText };
             }
+            
+            if (dataObj.usage) {
+              responseMessage = { ...responseMessage, tokens: dataObj.usage.completion_tokens };
+              updateUserMessageTokens(chatId, dataObj.usage.prompt_tokens);
+            }
+
+            if (dataObj.finish_reason === 'stop') {
+              responseMessage = { ...responseMessage, completed: true };
+              handleReceive(responseMessage, chatId, true);
+              return;
+            }
+          } catch (error) {
+            console.error('Error parsing JSON:', msg, error);
+          }
         }
-
-        handleReceive(responseMessage, chatId, false);
+      }
+  
+      handleReceive(responseMessage, chatId, false);
     }
   };
-
+  
   const formatPrompt = (content: string): string => {
-    // Initialize an empty string for the formatted messages
-    let formattedMessages = '';
-
-    // Check if selectedChat and its messages are defined
+    const messagesToInclude = [];
+    let currentTokenCount = Math.ceil(content.length / 4); // Start with token count of the new content
+  
     if (selectedChat?.messages) {
-        // Format all messages in the chat for context
-        formattedMessages = selectedChat.messages.map(message => {
-            return message.author === 'You' 
-                ? `### Instruction:\n${message.content}\n`
-                : `### Response:\n${message.content}\n`;
-        }).join('');
+      // Iterate over the messages from newest to oldest
+      for (let i = selectedChat.messages.length - 1; i >= 0; i--) {
+        const message = selectedChat.messages[i];
+        const newTokenCount = currentTokenCount + (message.tokens || 0);
+  
+        // Check if adding this message would exceed the limit
+        if (newTokenCount > API_MAX_TOKENS - API_MAX_GEN_TOKENS) break;
+  
+        // Update current token count and add the message to the list
+        currentTokenCount = newTokenCount;
+        messagesToInclude.push(message);
+      }
     }
+    
+    // Reverse the order of messages to be from oldest to newest
+    messagesToInclude.reverse();
+  
+    // Start formattedMessages with API_PROMPT and a newline
+    let formattedMessages = `${API_PROMPT}\n`;
 
-    // Add the current content at the end
-    // If formattedMessages is empty, it won't affect the final string
-    return `${formattedMessages}### Instruction:\n${content}\n### Response:\n`;
+    // Format the messages and append them
+    formattedMessages += messagesToInclude.map(message => {
+      return message.author === 'You' 
+          ? `${API_ANTI_PROMPT}\n${message.content}\n`
+          : `${API_ASSISTANT_PROMPT}\n${message.content}\n`;
+    }).join('');
+
+    // Add the new content at the end
+    formattedMessages += `${API_ANTI_PROMPT}\n${content}\n${API_ASSISTANT_PROMPT}\n`;
+
+    return formattedMessages;
   };
-
+  
   const handleSendMessage = async (content: string) => {
     setIsSending(true);
 
@@ -153,11 +211,10 @@ const Window: React.FC = () => {
     }
 
     // Send the data to the server and handle the stream
-    
-    const response = await fetch('http://${API_BACKEND_URL}/completion', {
+    const response = await fetch(`${API_BACKEND_URL}/v1/completions`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({prompt: formatPrompt(content), n_predict: -1, stream: true, stop: ["\n### Instruction:"]})
+        body: JSON.stringify({prompt: formatPrompt(content), model: API_MODEL_SELECTION, max_tokens: API_MAX_GEN_TOKENS, stream: true, stop: [API_ANTI_PROMPT, API_ASSISTANT_PROMPT]})
     });
 
     if (response.body) {
