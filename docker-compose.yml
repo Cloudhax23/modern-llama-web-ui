@@ -1,19 +1,17 @@
-version: '3.8'
-
 services:
   hive_app:
     container_name: hive_app
     build:
       context: .
+      dockerfile: Dockerfile.ui
       args:
         REACT_APP_API_BACKED_URL: "http://localhost:8000" # This should match the backend below. NOTE: The backend can be ran indepdently.
-        REACT_APP_API_MODEL_SELECTION: "/models/" # This should match the --model you have set below in hive_backend.
-        REACT_APP_API_MAX_GEN_TOKENS: 2048 # This should be a reasonable % of the max-model-len defined below.
-        REACT_APP_API_MAX_TOKENS: 4096 # This should be equal to max-model-len defined below.
-        REACT_APP_API_PROMPT: "You are a very intelligent AI that wants to help everyone succeed" # A prompt that will be sent at the beginning of the context window.
+        REACT_APP_API_MODEL_SELECTION: "/models/deepseek-33b" # This should match the --model you have set below in hive_backend.
+        REACT_APP_API_MAX_GEN_TOKENS: 8192 # This should be a reasonable % of the max-model-len defined below.
+        REACT_APP_API_MAX_TOKENS: 16384 # This should be equal to max-model-len defined below.
+        REACT_APP_API_PROMPT: "You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer." # A prompt that will be sent at the beginning of the context window.
         REACT_APP_API_ANTI_PROMPT: "### Instruction:" # Please refer to your model settings for this.
         REACT_APP_API_ASSISTANT_PROMPT: "### Response:" # Please refer to your model settings for this.
-      dockerfile: Dockerfile.ui
     ports:
       - "80:80" # This maps our UI front end to serve on port 80. Change as needed.
 
@@ -26,11 +24,11 @@ services:
     command: 
       - --port=8000 # Internal port.
       - --host=0.0.0.0 # Internal network address.
-      - --max-model-len=4096 # Set your context length. NOTE: This includes the context window..\
+      - --max-model-len=16384 # Set your context length. NOTE: This includes the context window..\
       - --download-dir=/models # The path where your model(s) are stored.
-      - --model=/models/ # Your model name should folow this.
+      - --model=/models/deepseek-33b # Your model name should folow this.
     volumes:
-      - /localdir/models/model:/models/model # Please define this to where your model is located.
+      - /data/models/deepseek-33b:/models/deepseek-33b # Please define this to where your model is located.
     deploy: # Currently vLLM only supports NVIDIA GPU's, you can define GPU utilization as needed here.
       resources:
         reservations:
