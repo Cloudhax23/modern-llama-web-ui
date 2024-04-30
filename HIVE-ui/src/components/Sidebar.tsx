@@ -3,10 +3,11 @@ import HiveIcon from '@mui/icons-material/Hive';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormControlLabel, IconButton, List, ListItem, Menu, MenuItem, Radio, RadioGroup, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormControlLabel, IconButton, List, ListItem, Menu, MenuItem, PaletteMode, Radio, RadioGroup, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import ChatsList from './ChatsList';
 import { Chat } from '../types';
+import { useThemeContext } from './ThemeContext';
 
 interface SidebarProps {
   selectedChat: Chat | null;
@@ -19,6 +20,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ selectedChat, chats, onChatSelect, onCreateNewChat, onDeleteChat, onRenameChat }) => {
   const theme = useTheme();
+  const { toggleTheme } = useThemeContext(); // Use the context to access toggleTheme
   const [openDialog, setOpenDialog] = useState(false);
 
   const handleOpenSettings = () => {
@@ -30,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedChat, chats, onChatSelect, on
   };
 
   const handleThemeChange = () => {
-    //setTheme(event.target.value); // Function to change the theme
+    toggleTheme();
   };
 
   const handleDeleteAllChats = () => {

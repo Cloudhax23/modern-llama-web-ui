@@ -1,32 +1,43 @@
-import React, { useState } from 'react';
-import ChatWindow from './ChatWindow';
-import SidebarWindow from './Sidebar';
+import React, { useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Chat } from '../types';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import ChatWindow from './ChatWindow';
+import { ThemeContext } from './ThemeContext';
 
 function ModernLLAMAWebUIApp() {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  // Check local storage for a stored theme or use system preference
+  const systemPrefersDark = useMediaQuery('(prefers-color-scheme: dark)');
+  const [prefersDarkMode, setPrefersDarkMode] = useState(() => {
+    const storedThemePreference = localStorage.getItem('themeMode');
+    return storedThemePreference ? storedThemePreference === 'dark' : systemPrefersDark;
+  });
 
-  const theme = React.useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: prefersDarkMode ? 'dark' : 'light',
-        },
-      }),
-    [prefersDarkMode],
-  );
+  // Update local storage when the theme changes
+  useEffect(() => {
+    localStorage.setItem('themeMode', prefersDarkMode ? 'dark' : 'light');
+  }, [prefersDarkMode]);
+
+  const theme = useMemo(() => createTheme({
+    palette: {
+      mode: prefersDarkMode ? 'dark' : 'light',
+    },
+  }), [prefersDarkMode]);
+
+  const toggleTheme = () => {
+    setPrefersDarkMode(!prefersDarkMode);
+  };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <ThemeContext.Provider value={{ toggleTheme, prefersDarkMode }}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
         <Box sx={{ height: '100vh', display: 'flex' }}>
           <ChatWindow />
         </Box>
-    </ThemeProvider>
+      </ThemeProvider>
+    </ThemeContext.Provider>
   );
 }
 
