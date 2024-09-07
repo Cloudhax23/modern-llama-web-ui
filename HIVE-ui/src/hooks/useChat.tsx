@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { API_MAX_GEN_TOKENS, API_MAX_TOKENS, API_PROMPT, Chat, Message } from '../types'; // Removed backend URL and model for simulation
+import { API_BACKEND_URL, API_MAX_GEN_TOKENS, API_MAX_TOKENS, API_MODEL_SELECTION, API_PROMPT, Chat, Message } from '../types';
 import { v4 as uuidv4 } from 'uuid';
-import { formatPrompt } from '../utils/chatUtils'; // Still using this utility for prompt formatting
+import { formatPrompt, handleStream } from '../utils/chatUtils';
 
 export const useChat = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -76,39 +76,31 @@ export const useChat = () => {
       setChats(chats => chats.map(chat => chat.id === updatedChat.id ? updatedChat : chat));
     }
   
-    // Skipping actual API call and simulating a response
+    const promptData = formatPrompt(content, selectedChat, API_MAX_TOKENS, API_MAX_GEN_TOKENS, API_PROMPT);
+  
     try {
-      // Simulate delay like an API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Simulate a response message from AI
-      const simulatedResponseMessage: Message = {
-        id: uuidv4(),
-        author: "AI Bot",
-        content: `You said:\n\n\`\`\`tsx\n${content}\n\`\`\``, // Markdown with TSX code block
-        timestamp: Date.now(),
-        tokens: Math.ceil(content.length / 4),
-        completed: true
-      };
-
-      // Update chat with simulated response
-      setChats(prevChats => {
-        const chatIndex = prevChats.findIndex(chat => chat.id === chatId);
-        const updatedChat = { ...prevChats[chatIndex] };
-        updatedChat.messages.push(simulatedResponseMessage);
-
-        const newChats = prevChats.map((chat, index) => index === chatIndex ? updatedChat : chat);
-        saveChatsToLocalStorage(newChats);
-
-        return newChats;
+      const response = await fetch(`${API_BACKEND_URL}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: promptData.messages,
+          model: API_MODEL_SELECTION,
+          stream: true
+        })
       });
-
+  
+      if (response.body) {
+        const reader = response.body.getReader();
+        await handleStream(reader, chatId, handleReceive);
+      }
     } catch (error) {
       console.error("Error while sending message:", error);
     } finally {
+      saveChatsToLocalStorage(chats);
       setIsSending(false);
     }
   };
+  
 
   return {
     chats,
