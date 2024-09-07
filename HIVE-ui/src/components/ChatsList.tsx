@@ -51,7 +51,7 @@ const ChatsList: React.FC<ChatsListProps> = ({ selectedChat, chats, onChatSelect
   };
 
   const handleRenameClick = () => {
-    setNewName(selectedChat?.name || ''); // Set current name as default
+    setNewName(selectedChat?.name || '');
     setDialogOpen(true);
     handleClose();
   };

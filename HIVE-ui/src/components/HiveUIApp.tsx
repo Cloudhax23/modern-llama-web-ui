@@ -7,14 +7,12 @@ import ChatWindow from './ChatWindow';
 import { ThemeContext } from './ThemeContext';
 
 function ModernLLAMAWebUIApp() {
-  // Check local storage for a stored theme or use system preference
   const systemPrefersDark = useMediaQuery('(prefers-color-scheme: dark)');
   const [prefersDarkMode, setPrefersDarkMode] = useState(() => {
     const storedThemePreference = localStorage.getItem('themeMode');
     return storedThemePreference ? storedThemePreference === 'dark' : systemPrefersDark;
   });
 
-  // Update local storage when the theme changes
   useEffect(() => {
     localStorage.setItem('themeMode', prefersDarkMode ? 'dark' : 'light');
   }, [prefersDarkMode]);

@@ -28,8 +28,8 @@ const Message: React.FC<{ message: MessageType }> = ({ message }) => {
   const isDarkMode = theme.palette.mode === 'dark';
   
   useEffect(() => {
-    const marked = getMarked();
     const parseMarkdown = async (markdownText: string) => {
+      const marked = getMarked();
       const rawMarkup = marked.parse(markdownText);
       let sanitizedMarkup = '';
       if (typeof rawMarkup === 'string') {
@@ -38,10 +38,8 @@ const Message: React.FC<{ message: MessageType }> = ({ message }) => {
         sanitizedMarkup = DOMPurify.sanitize(await rawMarkup);
       }
     
-      // Split the content into segments of code and text
       const segments = sanitizedMarkup.split(/(<pre><code class="hljs language-.*?">[\s\S]*?<\/code><\/pre>)/);
     
-      // Render each segment
       const contentElements = segments.map((segment, index) => {
         const codeBlockRegex = /<pre><code class="hljs language-(.*?)">([\s\S]*?)<\/code><\/pre>/;
         const match = codeBlockRegex.exec(segment);
@@ -54,21 +52,27 @@ const Message: React.FC<{ message: MessageType }> = ({ message }) => {
         }
       });
     
-      // Set the combined content
       setContent(<div>{contentElements}</div>);
     };
 
-    parseMarkdown(message.content);
-  }, [message.content]);
+    if (message.author === 'You') {
+      setContent(<div>{message.content}</div>);
+    } else {
+      parseMarkdown(message.content);
+    }
+  }, [message.content, message.author]);
 
   return (
     <Box>
       <Typography component="span" sx={{ fontWeight: 'fontWeightBold' }}>
         {message.author}:
       </Typography>
-      <span className={`content ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
+      <Box
+        className={`content ${isDarkMode ? 'dark-mode' : 'light-mode'}`}
+        sx={{ whiteSpace: 'pre-wrap' }}
+      >
         {content}
-      </span>
+      </Box>
     </Box>
   );
 };

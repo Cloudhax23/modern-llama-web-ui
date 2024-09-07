@@ -15,12 +15,13 @@ interface SidebarProps {
   onChatSelect: (chat: Chat) => void;
   onCreateNewChat: () => void;
   onDeleteChat: (chat: Chat) => void;
+  onDeleteAllChats: () => void;
   onRenameChat: (chat: Chat, newName: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ selectedChat, chats, onChatSelect, onCreateNewChat, onDeleteChat, onRenameChat }) => {
+const Sidebar: React.FC<SidebarProps> = ({ selectedChat, chats, onChatSelect, onCreateNewChat, onDeleteChat, onDeleteAllChats, onRenameChat }) => {
   const theme = useTheme();
-  const { toggleTheme } = useThemeContext(); // Use the context to access toggleTheme
+  const { toggleTheme } = useThemeContext();
   const [openDialog, setOpenDialog] = useState(false);
 
   const handleOpenSettings = () => {
@@ -36,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedChat, chats, onChatSelect, on
   };
 
   const handleDeleteAllChats = () => {
-    // Logic to delete all chats
+    onDeleteAllChats();
     handleCloseSettings();
   };
 
@@ -55,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedChat, chats, onChatSelect, on
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
-        mb: 2 // Margin bottom to separate from ChatsList
+        mb: 2
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <HiveIcon fontSize='large'/>
@@ -68,8 +69,8 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedChat, chats, onChatSelect, on
         </IconButton>
       </Box>
       <Box sx={{ 
-        flexGrow: 1, // Allows this box to grow and fill available space
-        overflowY: 'auto' // Makes it scrollable
+        flexGrow: 1,
+        overflowY: 'auto'
       }}>
         <ChatsList selectedChat={selectedChat} chats={chats} onChatSelect={onChatSelect} onDeleteChat={onDeleteChat} onRenameChat={onRenameChat} />
       </Box>

@@ -10,8 +10,6 @@ services:
         REACT_APP_API_MAX_GEN_TOKENS: 8192 # This should be a reasonable % of the max-model-len defined below.
         REACT_APP_API_MAX_TOKENS: 16384 # This should be equal to max-model-len defined below.
         REACT_APP_API_PROMPT: "You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer." # A prompt that will be sent at the beginning of the context window.
-        REACT_APP_API_ANTI_PROMPT: "### Instruction:" # Please refer to your model settings for this.
-        REACT_APP_API_ASSISTANT_PROMPT: "### Response:" # Please refer to your model settings for this.
     ports:
       - "80:80" # This maps our UI front end to serve on port 80. Change as needed.
 
