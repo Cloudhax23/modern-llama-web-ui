@@ -39,7 +39,7 @@ const Window: React.FC = () => {
 
     saveChatsToLocalStorage(updatedChats);
   };
-  
+
   const handleDeleteAllChats = () => {
     setChats([]);
     setSelectedChat(null);
@@ -123,7 +123,7 @@ const Window: React.FC = () => {
           }}
         >
           {selectedChat ? (
-            <MessageList messages={selectedChat.messages} />
+            <MessageList messages={selectedChat.messages} isStreaming={isSending} />
           ) : (
             <Box
               sx={{

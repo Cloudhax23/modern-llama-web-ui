@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Message as MessageType } from '../types';
 import Message from './Message';
 import List from '@mui/material/List';
@@ -7,6 +7,7 @@ import { styled } from '@mui/system';
 
 interface MessageListProps {
   messages: MessageType[];
+  isStreaming: boolean;
 }
 
 const StyledList = styled(List)(({ theme }) => ({
@@ -26,19 +27,43 @@ const StyledList = styled(List)(({ theme }) => ({
   }
 }));
 
-const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, isStreaming }) => {
   const bottomOfList = useRef<null | HTMLDivElement>(null);
+  const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(true);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      bottomOfList.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 100);
+    if (isAutoScrollEnabled) {
+      const timeout = setTimeout(() => {
+        bottomOfList.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 100);
 
-    return () => clearInterval(interval);
-  }, [messages]);
-  
+      return () => clearTimeout(timeout);
+    }
+  }, [messages, isStreaming, isAutoScrollEnabled]);
+
+  useEffect(() => {
+    if (isAutoScrollEnabled && isStreaming) {
+      const interval = setInterval(() => {
+        bottomOfList.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 100);
+
+      return () => clearInterval(interval);
+    }
+  }, [isStreaming, isAutoScrollEnabled]);
+
+  const handleScroll = (event: React.UIEvent<HTMLUListElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+    const isUserAtBottom = scrollHeight - scrollTop <= clientHeight + 10;
+
+    if (!isUserAtBottom) {
+      setIsAutoScrollEnabled(false);
+    } else if (isStreaming) {
+      setIsAutoScrollEnabled(true);
+    }
+  };
+
   return (
-    <StyledList>
+    <StyledList onScroll={handleScroll}>
       {messages.map((message) => (
         <ListItem key={message.id}>
           <Message message={message} />
